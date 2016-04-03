@@ -50,7 +50,7 @@ public class Client implements Runnable
 		int i =0;
 		while (true)
 		{
-//			System.out.println("enter the void");
+			System.out.println("enter the void");
 			if(on)
 			{
 				byte[] bytes = null;

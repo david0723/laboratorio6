@@ -8,6 +8,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -19,6 +20,8 @@ public class ServerConnection implements Runnable
 	private Socket soc;
 	private DataOutputStream outToServer;
 	private BufferedReader in;
+	private OutputStream outputStream;
+	private FileInputStream fileInput;
 
 	public ServerConnection(int xport, String xip)
 	{
@@ -46,7 +49,8 @@ public class ServerConnection implements Runnable
 			{
 				System.out.println("soc is null");
 				soc = new Socket(ip, port);
-				outToServer = new DataOutputStream(soc.getOutputStream());
+				outputStream = soc.getOutputStream();
+				outToServer = new DataOutputStream(outputStream);
 				in = new BufferedReader(new InputStreamReader(soc.getInputStream()));
 			}
 			
@@ -98,7 +102,6 @@ public class ServerConnection implements Runnable
 			System.out.println("credenciales:ok");
 			response = true;
 		}
-		sendMessage("thanks");
 		return response;
 	}
 	
@@ -131,7 +134,7 @@ public class ServerConnection implements Runnable
 	public void sendVideo(File f, String user)
 	{
 		
-		sendMessage("video:"+f.getName()+":"+user);
+		sendMessage("video:"+f.getName()+":"+user+":"+(int)f.length());
 		
 		byte [] mybytearray  = new byte [(int)f.length()];
 		
@@ -139,9 +142,17 @@ public class ServerConnection implements Runnable
         BufferedInputStream bis;
 		try 
 		{
-			bis = new BufferedInputStream(new FileInputStream(f));
+			fileInput = new FileInputStream(f);
+			bis = new BufferedInputStream(fileInput);
 			bis.read(mybytearray,0,mybytearray.length);
-	        outToServer.write(mybytearray);
+			
+//			int count;
+//	        while ((count = fileInput.read(mybytearray)) > 0) 
+//	        {
+//	            outputStream.write(mybytearray, 0, count);
+//	        }
+			outToServer.write(mybytearray);
+	        
 		}
 		catch (FileNotFoundException e)
 		{

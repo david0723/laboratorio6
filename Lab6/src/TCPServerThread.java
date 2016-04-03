@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
@@ -39,6 +40,7 @@ public class TCPServerThread extends Thread
 	private BufferedReader inFromClient;
 	private DataOutputStream outToClient;
 	private InputStreamReader inputStreamReader;
+	private InputStream inputStream;
 	
 	public TCPServerThread()
 	{
@@ -120,6 +122,7 @@ public class TCPServerThread extends Thread
         }
         else if(message.contains("video"))
         {
+        	write("ok,thanks");
         	downloadVideo(message.split(":"));
         }
 
@@ -146,31 +149,36 @@ public class TCPServerThread extends Thread
 
 	private void downloadVideo(String[] split) 
 	{
-
-
-		
-		
 		int bytesRead;
 	    int current = 0;
+	    
+	    int fileSize = Integer.parseInt(split[4]);
 		
-		char [] mybytearray  = new char [FILE_SIZE];
+		byte [] mybytearray  = new byte [fileSize];
 		try 
 		{
 			BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(USERS+split[2]+"/"+split[1]));
+			System.out.println("Initiating download...");
 			
-			bytesRead = inFromClient.read(mybytearray,0,mybytearray.length);
+			bytesRead = inputStream.read(mybytearray,0,mybytearray.length);
 			
+			
+
 			current = bytesRead;
 
 		      do 
 		      {
-		         bytesRead = inFromClient.read(mybytearray, current, (mybytearray.length-current));
-		         if(bytesRead >= 0) current += bytesRead;
+		    	  System.out.println("Bytes Read: "+bytesRead);
+		    	
+		          bytesRead = inputStream.read(mybytearray, current, (mybytearray.length-current));
+		          if(bytesRead >= 0) current += bytesRead;
 		      } 
-		      while(bytesRead > -1);
+		      while(bytesRead > 0);
+		      System.out.println("DONE");
 		      
-		      bos.wri
+		      bos.write(mybytearray);
 		      bos.flush();
+		      bos.close();
 		} 
 		catch (IOException e)
 		{
@@ -209,7 +217,8 @@ public class TCPServerThread extends Thread
 		{
 			if (inFromClient == null)
 			{
-				inputStreamReader =  new InputStreamReader(socket.getInputStream());
+				inputStream = socket.getInputStream();
+				inputStreamReader =  new InputStreamReader(inputStream);
 				inFromClient = new BufferedReader(inputStreamReader);
 			}
 			clientSentence = inFromClient.readLine();

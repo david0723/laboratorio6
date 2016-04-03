@@ -211,7 +211,7 @@ public class Main {
 			System.out.println("MAIN -> login ok");
 			
 			JOptionPane.showMessageDialog(frame, "Log In Succesful");
-//			updatePlaylist();
+			updatePlaylist();
 			
 
 		}
