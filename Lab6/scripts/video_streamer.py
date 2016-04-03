@@ -15,13 +15,14 @@ class streamer:
 		cap = cv2.VideoCapture(video)
 		count = 0
 		flag, frame = cap.read();
+		sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 
 		while flag:
-		    print "reading frame %d" %count
+		    # print "reading frame %d" %count
 		    ret, png = cv2.imencode('.jpeg', frame, [cv2.IMWRITE_JPEG_QUALITY, 10])
 		    b = png.tobytes()
-		    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+		    
 
 		    ttl = struct.pack('b', 32)
 		    sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, ttl)

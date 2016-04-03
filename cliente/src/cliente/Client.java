@@ -25,7 +25,7 @@ public class Client implements Runnable
 		on = false;
 		main = m;
 		setPort(p);
-		groupIp = ip_group;
+		groupIp = "224.0.0."+ip_group;
 	}
 	public boolean getOn()
 	{
@@ -50,7 +50,7 @@ public class Client implements Runnable
 		int i =0;
 		while (true)
 		{
-			System.out.println("enter the void");
+//			System.out.println("enter the void");
 			if(on)
 			{
 				byte[] bytes = null;
@@ -59,6 +59,7 @@ public class Client implements Runnable
 				{
 					MulticastSocket multicastSocket = new MulticastSocket(port);
 					InetAddress group = InetAddress.getByName(groupIp);
+					System.out.println("Group IP: "+groupIp);
 					multicastSocket.joinGroup(group);
 					
 					
@@ -113,6 +114,12 @@ public class Client implements Runnable
 	}
 	public void setPort(int port) {
 		this.port = port;
+	}
+	public void setGroup(String group) 
+	{
+		this.groupIp = "224.0.0."+group;
+		// TODO Auto-generated method stub
+		
 	}
 
 }

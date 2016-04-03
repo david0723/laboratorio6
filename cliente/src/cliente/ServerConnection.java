@@ -1,7 +1,11 @@
 package cliente;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
@@ -50,6 +54,7 @@ public class ServerConnection implements Runnable
 	        System.out.println("message sended to server: "+message);
 	        System.out.println("waiting for response...");
             resp = in.readLine();
+            
             System.out.println("response: "+resp);
 //	        soc.close();
 		} 
@@ -87,12 +92,14 @@ public class ServerConnection implements Runnable
 	}
 	public boolean checkLogin(String s)
 	{
+		boolean response = false;
 		if (sendMessage("credenciales:"+s).contains("credenciales:ok"))
 		{
 			System.out.println("credenciales:ok");
-			return true;
+			response = true;
 		}
-		return false;
+		sendMessage("thanks");
+		return response;
 	}
 	
 	public void updatePlaylist() 
@@ -114,6 +121,39 @@ public class ServerConnection implements Runnable
 	}
 	public void run() 
 	{
+		
+	}
+	public String[] getPlaylist(String user) 
+	{
+		return (sendMessage("playlist:"+user)).split(":");
+		
+	}
+	public void sendVideo(File f, String user)
+	{
+		
+		sendMessage("video:"+f.getName()+":"+user);
+		
+		byte [] mybytearray  = new byte [(int)f.length()];
+		
+		
+        BufferedInputStream bis;
+		try 
+		{
+			bis = new BufferedInputStream(new FileInputStream(f));
+			bis.read(mybytearray,0,mybytearray.length);
+	        outToServer.write(mybytearray);
+		}
+		catch (FileNotFoundException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+		catch (IOException e) 
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        
 		
 	}
 }

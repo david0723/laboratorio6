@@ -1,7 +1,9 @@
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -23,6 +25,8 @@ public class TCPServerThread extends Thread
 {
 	private final static String DATA = "./data/";
 	private final static String AUTH = "auth.txt";
+	private static final int FILE_SIZE = 6022386;
+	private static final String USERS = "./scripts/users/";
 	
 	
 	private PrintWriter out;
@@ -32,6 +36,9 @@ public class TCPServerThread extends Thread
 	
 	
 	private boolean libre;
+	private BufferedReader inFromClient;
+	private DataOutputStream outToClient;
+	private InputStreamReader inputStreamReader;
 	
 	public TCPServerThread()
 	{
@@ -107,6 +114,15 @@ public class TCPServerThread extends Thread
         		System.out.println("Authentication Pailas");
         	}
         }
+        else if(message.contains("playlist"))
+        {
+        	write(getPlaylist((message.split(":"))[1]));
+        }
+        else if(message.contains("video"))
+        {
+        	downloadVideo(message.split(":"));
+        }
+
 		
 //        try 
 //        {
@@ -128,13 +144,74 @@ public class TCPServerThread extends Thread
 	
 
 
+	private void downloadVideo(String[] split) 
+	{
+
+
+		
+		
+		int bytesRead;
+	    int current = 0;
+		
+		char [] mybytearray  = new char [FILE_SIZE];
+		try 
+		{
+			BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(USERS+split[2]+"/"+split[1]));
+			
+			bytesRead = inFromClient.read(mybytearray,0,mybytearray.length);
+			
+			current = bytesRead;
+
+		      do 
+		      {
+		         bytesRead = inFromClient.read(mybytearray, current, (mybytearray.length-current));
+		         if(bytesRead >= 0) current += bytesRead;
+		      } 
+		      while(bytesRead > -1);
+		      
+		      bos.wri
+		      bos.flush();
+		} 
+		catch (IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+
+	private String getPlaylist(String string) 
+	{
+		String resp = "";
+		File folder = new File("./scripts/users/"+string+"/");
+		File[] listOfFiles = folder.listFiles();
+
+	    for (int i = 0; i < listOfFiles.length; i++) 
+	    {
+			if (listOfFiles[i].isFile() ) 
+			{
+				if(listOfFiles[i].getName().contains("mp4"))
+				{
+					resp = resp +listOfFiles[i].getName()+":";
+				}
+			} 
+	    }
+	    return resp;
+		    
+		
+	}
+
 	private String read() 
 	{
 		
         String clientSentence="";
 		try 
 		{
-			BufferedReader inFromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			if (inFromClient == null)
+			{
+				inputStreamReader =  new InputStreamReader(socket.getInputStream());
+				inFromClient = new BufferedReader(inputStreamReader);
+			}
 			clientSentence = inFromClient.readLine();
 		} 
 		catch (IOException e) 
@@ -148,7 +225,10 @@ public class TCPServerThread extends Thread
 	{
 		try 
 		{
-	        DataOutputStream outToClient = new DataOutputStream(socket.getOutputStream());
+	        if (outToClient == null)
+	        {
+	        	outToClient = new DataOutputStream(socket.getOutputStream());
+	        }
 			outToClient.writeBytes(s+'\n');
 		} 
 		catch (IOException e) 
@@ -192,16 +272,16 @@ public class TCPServerThread extends Thread
 		String userpsw="";
     	try 
     	{
-			userpsw = new Scanner(new File(DATA+AUTH)).useDelimiter("\\Z").next();
+			userpsw = new Scanner(new File("./scripts/users/"+s[1]+"/auth.txt")).useDelimiter("\\Z").next();
 			System.out.println("Saved userpswd:" + userpsw);
-			System.out.println("client userpswd"+s[1]);
+			System.out.println("client userpswd"+s[1]+s[2]);
 		} 
     	catch (FileNotFoundException e) 
     	{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-    	return  (userpsw.contains(s[1]));
+    	return  (userpsw.contains(s[2]));
 	}
 
 }

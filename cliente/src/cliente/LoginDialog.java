@@ -79,7 +79,7 @@ class LoginDialog extends JDialog implements ActionListener, Runnable
 		if (e.getActionCommand().equals(LOGIN))
 		{
 //			(new Thread(this)).start();
-			main.logIn(jtfUsername.getText()+","+jpfPassword.getText());
+			main.logIn(jtfUsername.getText()+":"+jpfPassword.getText());
 			setVisible(false);
 		}
 		else if (e.getActionCommand().equals(CANCEL))

@@ -36,6 +36,9 @@ public class Main {
 	private JTextField textField;
 	private int channel;
 	private ServerConnection connection;
+	private String group;
+	private JList list;
+	private JPanel panel_1;
 
 	/**
 	 * Launch the application.
@@ -89,11 +92,11 @@ public class Main {
 		{
 			public void actionPerformed(ActionEvent e) 
 			{
-				int p = Integer.parseInt(textField.getText()) ;
-				if(p!= channel)
-				{
-					client.setPort(channel=p);
-				}
+				updateIpPort();
+				
+				client.setPort(channel);
+				client.setGroup(group);
+				
 				System.out.println("switch");
 				client.change();
 				System.out.println(client.getOn());
@@ -107,7 +110,7 @@ public class Main {
 		lblChannel.setBounds(24, 65, 61, 16);
 		frame.getContentPane().add(lblChannel);
 		textField = new JTextField();
-		textField.setText("12345");
+		textField.setText("6:12350");
 		textField.setBounds(106, 61, 134, 28);
 		frame.getContentPane().add(textField);
 		textField.setColumns(10);
@@ -152,6 +155,8 @@ public class Main {
 				if (result == JFileChooser.APPROVE_OPTION) 
 				{
 				    File selectedFile = fileChooser.getSelectedFile();
+				    connection= new ServerConnection(TCP_PORT, IP_ADDRESS);
+				    connection.sendVideo(selectedFile, user);
 				    System.out.println("Selected file: " + selectedFile.getAbsolutePath());
 				}
 			}
@@ -164,13 +169,27 @@ public class Main {
 		JMenuItem mntmPauseplay = new JMenuItem("pause/play");
 		mnOption.add(mntmPauseplay);
 		
-		JList list = new JList();
-		list.setBounds(283, 93, 140, 140);
-		frame.getContentPane().add(list);
-		channel = Integer.parseInt(textField.getText());
+		panel_1 = new JPanel();
+		panel_1.setBounds(274, 65, 155, 168);
+		frame.getContentPane().add(panel_1);
+		panel_1.setLayout(new BorderLayout(0, 0));
 		
-		client = new Client(this, channel, "224.0.0.23");
+		list = new JList();
+		panel_1.add(list, BorderLayout.CENTER);
+		
+		updateIpPort();
+		
+		client = new Client(this, channel, group);
 		(new Thread(client)).start();
+	}
+	public void updateIpPort()
+	{
+		String text = textField.getText();
+		String ipPort[] = text.split(":");
+		channel = Integer.parseInt(ipPort[1]);
+		group = ipPort[0];
+		System.out.println("CHANNEL -> "+channel);
+		System.out.println("GROUP   -> "+group);
 	}
 	public void refresh(ImageIcon img)
 	{
@@ -192,10 +211,19 @@ public class Main {
 			System.out.println("MAIN -> login ok");
 			
 			JOptionPane.showMessageDialog(frame, "Log In Succesful");
+//			updatePlaylist();
 			
-//			JOptionPane j = new JOptionPane("Logged In");
-//			j.createDialog("Succes Bitch");
-//			j.setVisible(true);
+
 		}
+	}
+	public void updatePlaylist()
+	{
+		connection= new ServerConnection(TCP_PORT, IP_ADDRESS);
+		String[] vids = connection.getPlaylist(user);
+		panel_1.removeAll();
+		list = new JList(vids);
+		panel_1.add(list, BorderLayout.CENTER);
+		panel_1.repaint();
+		panel_1.updateUI();
 	}
 }
